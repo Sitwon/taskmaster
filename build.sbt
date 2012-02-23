@@ -8,3 +8,5 @@ resolvers += "Typesafe Repository" at "http://repo.typesafe.com/typesafe/release
 
 libraryDependencies += "se.scalablesolutions.akka" % "akka-actor" % "1.3.1"
 
+libraryDependencies += "se.scalablesolutions.akka" % "akka-remote" % "1.3.1"
+
