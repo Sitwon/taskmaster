@@ -8,7 +8,18 @@ object TaskmasterClient {
   var taskmasterServiceActor: ActorRef = null
 
   def main(args: Array[String]) {
-    remote.start("localhost", 2553)
+    var port = 2553
+    if (args.length > 0) {
+      try {
+        val client_number = Integer.parseInt(args(0))
+        port += client_number
+      } catch {
+        case e: NumberFormatException =>
+          println("Argument was not a number.")
+          System exit 1
+      }
+    }
+    remote.start("0.0.0.0", port)
     taskmasterServiceActor = remote.actorFor("taskmaster-service", "localhost", 2552)
     val localActor = actorOf[TaskmasterClientActor]
     localActor.start()

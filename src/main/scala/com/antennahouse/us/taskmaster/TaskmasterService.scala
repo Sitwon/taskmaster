@@ -43,7 +43,7 @@ object TaskmasterService {
       }
     }
     compare_list = compare_list.reverse
-    remote.start("localhost", 2552)
+    remote.start("0.0.0.0", 2552)
     remote.registerPerSession("taskmaster-service", actorOf[TaskmasterServiceActor])
   }
 
