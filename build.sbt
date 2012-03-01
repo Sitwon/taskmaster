@@ -1,3 +1,5 @@
+seq(com.github.retronym.SbtOneJar.oneJarSettings: _*)
+
 name := "taskmaster"
 
 version := "0.1"
