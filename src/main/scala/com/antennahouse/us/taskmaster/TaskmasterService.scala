@@ -12,6 +12,9 @@ case class JobResult(data: (File,File)) extends TaskMessage
 
 object TaskmasterService {
   var compare_list: List[(File, File)] = Nil
+  var sent = 0
+  var received = 0
+  var total = 0
 
   def main(args: Array[String]) {
     if (args.length < 2) {
@@ -43,6 +46,7 @@ object TaskmasterService {
       }
     }
     compare_list = compare_list.reverse
+    total = compare_list.length
     remote.start(args(0), 2552)
     remote.registerPerSession("taskmaster-service", actorOf[TaskmasterServiceActor])
   }
@@ -52,15 +56,6 @@ object TaskmasterService {
   }
 
   class TaskmasterServiceActor extends Actor {
-    var sent = 0
-    var received = 0
-    var total = 0
-
-    override
-    def preStart() {
-      total = compare_list.length
-    }
-
     def receive = {
       case JobRequest =>
         println("Got a JobRequest.")
