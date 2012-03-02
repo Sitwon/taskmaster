@@ -9,15 +9,14 @@ object TaskmasterClient {
 
   def main(args: Array[String]) {
     var port = 2553
-    if (args.length > 0) {
-      try {
-        val client_number = Integer.parseInt(args(0))
-        port += client_number
-      } catch {
-        case e: NumberFormatException =>
-          println("Argument was not a number.")
-          System exit 1
-      }
+    if (args.length < 3) { System exit 1 }
+    try {
+      val client_number = Integer.parseInt(args(0))
+      port += client_number
+    } catch {
+      case e: NumberFormatException =>
+        println("Argument was not a number.")
+        System exit 1
     }
     remote.start(args(1), port)
     taskmasterServiceActor = remote.actorFor("taskmaster-service", args(2), 2552)
@@ -33,7 +32,7 @@ object TaskmasterClient {
         Runtime.getRuntime().halt(0)
       case Job(data) =>
         // Process data
-        val proc = Runtime.getRuntime().exec(Array("/bin/sh", "-c", "/home/antenna/ahrts-dist/compare.sh", data._1.getAbsolutePath(), data._2.getAbsolutePath()))
+        val proc = Runtime.getRuntime().exec(Array("/bin/sh", "/home/antenna/ahrts-dist/compare.sh", data._1.getAbsolutePath(), data._2.getAbsolutePath()))
         println("Processing " + data._1 + " and " + data._2)
         proc.waitFor()
         self reply JobResult(data)
