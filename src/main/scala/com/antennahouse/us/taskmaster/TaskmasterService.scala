@@ -54,6 +54,10 @@ object TaskmasterService {
   class TaskmasterServiceActor extends Actor {
     var sent = 0
     var received = 0
+    var total = 0
+
+    def preStart() {
+      total = compare_list.length
 
     def receive = {
       case JobRequest =>
@@ -66,10 +70,12 @@ object TaskmasterService {
           self reply Job(compare_list.head)
           compare_list = compare_list.tail
           sent += 1
+          println("Sent: " + sent + " of " + total)
         }
       case JobResult(data) =>
         println("Received a JobResult.")
         received += 1
+        println("Received: " + received + " of " + total)
     }
   }
 }
