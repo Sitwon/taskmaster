@@ -20,7 +20,7 @@ object TaskmasterClient {
       }
     }
     remote.start("0.0.0.0", port)
-    taskmasterServiceActor = remote.actorFor("taskmaster-service", "localhost", 2552)
+    taskmasterServiceActor = remote.actorFor("taskmaster-service", "10.1.10.203", 2552)
     val localActor = actorOf[TaskmasterClientActor]
     localActor.start()
     localActor ! JobRequest
@@ -33,8 +33,9 @@ object TaskmasterClient {
         Runtime.getRuntime().halt(0)
       case Job(data) =>
         // Process data
+        val proc = Runtime.getRuntime().exec(Array("/bin/sh", "-c", "/home/antenna/ahrts-dist/compare.sh", data._1.getAbsolutePath(), data._2.getAbsolutePath()))
         println("Processing " + data._1 + " and " + data._2)
-        Thread sleep 1000
+        proc.waitFor()
         self reply JobResult(data)
         requestAJob()
       case JobRequest =>
