@@ -56,8 +56,10 @@ object TaskmasterService {
     var received = 0
     var total = 0
 
+    override
     def preStart() {
       total = compare_list.length
+    }
 
     def receive = {
       case JobRequest =>
