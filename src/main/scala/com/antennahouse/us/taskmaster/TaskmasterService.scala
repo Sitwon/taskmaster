@@ -14,11 +14,11 @@ object TaskmasterService {
   var compare_list: List[(File, File)] = Nil
 
   def main(args: Array[String]) {
-    if (args.length < 1) {
+    if (args.length < 2) {
       printUsage()
       System exit 1
     }
-    val input_dir = new File(args(0))
+    val input_dir = new File(args(1))
     if (!input_dir.isDirectory) {
       printUsage()
       System exit 2
@@ -43,7 +43,7 @@ object TaskmasterService {
       }
     }
     compare_list = compare_list.reverse
-    remote.start("0.0.0.0", 2552)
+    remote.start(args(0), 2552)
     remote.registerPerSession("taskmaster-service", actorOf[TaskmasterServiceActor])
   }
 

@@ -19,8 +19,8 @@ object TaskmasterClient {
           System exit 1
       }
     }
-    remote.start("0.0.0.0", port)
-    taskmasterServiceActor = remote.actorFor("taskmaster-service", "10.1.10.203", 2552)
+    remote.start(args(1), port)
+    taskmasterServiceActor = remote.actorFor("taskmaster-service", args(2), 2552)
     val localActor = actorOf[TaskmasterClientActor]
     localActor.start()
     localActor ! JobRequest
