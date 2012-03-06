@@ -4,6 +4,8 @@ import akka.actor.Actor
 import akka.actor.Actor._
 import akka.actor.ActorRef
 
+import java.io._
+
 object TaskmasterClient {
   var taskmasterServiceActor: ActorRef = null
 
@@ -33,6 +35,8 @@ object TaskmasterClient {
       case Job(data) =>
         // Process data
         val proc = Runtime.getRuntime().exec(Array("/bin/sh", "/home/antenna/ahrts-dist/compare.sh", data._1.getAbsolutePath(), data._2.getAbsolutePath()))
+        (new StreamGobbler(proc.getErrorStream())).start()
+        (new StreamGobbler(proc.getInputStream())).start()
         println("Processing " + data._1 + " and " + data._2)
         proc.waitFor()
         self reply JobResult(data)
@@ -45,6 +49,22 @@ object TaskmasterClient {
     def requestAJob() {
       println("Requesting a Job.")
       taskmasterServiceActor ! JobRequest
+    }
+  }
+
+  class StreamGobbler(is: InputStream) extends Thread {
+    override def run() {
+      try {
+        val reader = new BufferedReader(new InputStreamReader(is))
+        var line: String = reader.readLine()
+        while (line != null) {
+          println("OUTPUT: " + line)
+          line = reader.readLine()
+        }
+      } catch {
+        case e: Exception =>
+          println(e.getMessage())
+      }
     }
   }
 }
