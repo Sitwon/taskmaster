@@ -39,7 +39,7 @@ object TaskmasterClient {
         printGobbler(proc.getInputStream())
         println("Processing " + data._1 + " and " + data._2)
         proc.waitFor()
-        self reply JobResult(data)
+        sender ! JobResult(data)
         requestAJob()
       case JobRequest =>
         println("received JobRequest.")

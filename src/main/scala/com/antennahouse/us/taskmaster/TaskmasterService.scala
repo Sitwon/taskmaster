@@ -61,10 +61,10 @@ object TaskmasterService {
         println("Got a JobRequest.")
         if (compare_list == Nil) {
           println("No more jobs.")
-          self reply JobsFinished
+          sender ! JobsFinished
         } else {
           println("Sending a job.")
-          self reply Job(compare_list.head)
+          sender ! Job(compare_list.head)
           compare_list = compare_list.tail
           sent += 1
           println("Sent: " + sent + " of " + total)
