@@ -1,8 +1,9 @@
 package com.antennahouse.us.taskmaster
 
-import akka.actor.Actor
+import akka.actor.{ ActorRef, Props, Actor, ActorSystem }
 import akka.actor.Actor._
 import akka.actor.ActorRef
+import com.typesafe.config.ConfigFactory
 
 import StreamGobbler._
 
@@ -20,11 +21,10 @@ object TaskmasterClient {
         println("Argument was not a number.")
         System exit 1
     }
-    remote.start(args(1), port)
-    taskmasterServiceActor = remote.actorFor("taskmaster-service", args(2), 2552)
-    val localActor = actorOf[TaskmasterClientActor]
-    localActor.start()
-    localActor ! JobRequest
+    val system = ActorSystem("TaskmasterClientApplication", ConfigFactory.load.getConfig("taskmasterClient"))
+    val actor = system.actorOf(Props[TaskmasterClientActor], "taskmaster-client")
+    val taskmasterServiceActor = system.actorFor("akka://TaskmasterServiceApplication@127.0.0.1:2552/user/taskmaster-service")
+    actor ! JobRequest
   }
 
   class TaskmasterClientActor extends Actor {

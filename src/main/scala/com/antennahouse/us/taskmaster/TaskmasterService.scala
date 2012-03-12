@@ -1,7 +1,8 @@
 package com.antennahouse.us.taskmaster
 
-import akka.actor.Actor
+import akka.actor.{ ActorRef, Props, Actor, ActorSystem }
 import akka.actor.Actor._
+import com.typesafe.config.ConfigFactory
 import java.io.{File, FilenameFilter}
 
 sealed trait TaskMessage
@@ -47,8 +48,8 @@ object TaskmasterService {
     }
     compare_list = compare_list.reverse
     total = compare_list.length
-    remote.start(args(0), 2552)
-    remote.registerPerSession("taskmaster-service", actorOf[TaskmasterServiceActor])
+    val system = ActorSystem("TaskmasterServiceApplication", ConfigFactory.load.getConfig("taskmasterService"))
+    val actor = system.actorOf(Props[TaskmasterServiceActor], "taskmaster-service")
   }
 
   def printUsage() {
