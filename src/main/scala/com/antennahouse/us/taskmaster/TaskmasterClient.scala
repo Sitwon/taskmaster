@@ -23,7 +23,7 @@ object TaskmasterClient {
     }
     val system = ActorSystem("TaskmasterClientApplication", ConfigFactory.load.getConfig("taskmasterClient"))
     val actor = system.actorOf(Props[TaskmasterClientActor], "taskmaster-client")
-    val taskmasterServiceActor = system.actorFor("akka://TaskmasterServiceApplication@127.0.0.1:2552/user/taskmaster-service")
+    taskmasterServiceActor = system.actorFor("akka://TaskmasterServiceApplication@127.0.0.1:2552/user/taskmaster-service")
     actor ! JobRequest
   }
 
