@@ -14,7 +14,7 @@ We are using the meta-target 'all' for configurability.
 
 @basedir = The base directory for all relative paths. (Optional)
 -->
-<project default="all" basedir=".">
+<project xmlns:ivy="antlib:org.apache.ivy.ant" default="all" basedir=".">
     <!-- Load the properties file containing the project-specific configuration. -->
     <loadproperties srcFile="build.properties"/>
 
@@ -180,6 +180,10 @@ We are using the meta-target 'all' for configurability.
         <delete dir="${javadoc}"/>
         <delete dir="${dist}"/>
         <delete dir="${build}"/>
+    </target>
+
+    <target name="resolve">
+        <ivy:retrieve />
     </target>
 </project>
 

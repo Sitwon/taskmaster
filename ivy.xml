@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<ivy-module version="2.0">
+    <info organisation="com.antennahouse.us" module="taskmaster" />
+    <dependencies>
+        <dependency org="com.typesafe.akka" name="akka-actor" rev="2.0" />
+        <dependency org="com.typesafe.akka" name="akka-remote" rev="2.0" />
+    </dependencies>
+</ivy-module>
+
