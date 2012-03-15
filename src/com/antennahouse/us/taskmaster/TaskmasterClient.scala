@@ -12,7 +12,10 @@ object TaskmasterClient {
 
   def main(args: Array[String]) {
     var port = 2553
-    if (args.length < 3) { System exit 1 }
+    if (args.length < 3) {
+      System.err.println("Usage: TaskmasterClient <client-number> <client-IP> <server-IP>")
+      System exit 1
+    }
     try {
       val client_number = Integer.parseInt(args(0))
       port += client_number

@@ -53,7 +53,7 @@ object TaskmasterService {
   }
 
   def printUsage() {
-    println("You're doing it wrong.")
+    System.err.println("Usage: TaskmasterService <server-IP> <input-dir>")
   }
 
   class TaskmasterServiceActor extends Actor {
