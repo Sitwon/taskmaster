@@ -48,7 +48,21 @@ object TaskmasterService {
     }
     compare_list = compare_list.reverse
     total = compare_list.length
-    val system = ActorSystem("TaskmasterServiceApplication", ConfigFactory.load.getConfig("taskmasterService"))
+    val config = ConfigFactory.parseString("""
+        akka {
+          actor {
+            provider = "akka.remote.RemoteActorRefProvider"
+          }
+          remote {
+            transport = "akka.remote.netty.NettyRemoteTransport"
+            netty {
+              hostname = "%s"
+              port = 2552
+            }
+          }
+        }
+        """.format(args(0)))
+    val system = ActorSystem("TaskmasterServiceApplication", ConfigFactory.load(config))
     val actor = system.actorOf(Props[TaskmasterServiceActor], "taskmaster-service")
   }
 

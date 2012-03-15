@@ -24,9 +24,23 @@ object TaskmasterClient {
         println("Argument was not a number.")
         System exit 1
     }
-    val system = ActorSystem("TaskmasterClientApplication", ConfigFactory.load.getConfig("taskmasterClient"))
+    val config = ConfigFactory.parseString("""
+        akka {
+          actor {
+            provider = "akka.remote.RemoteActorRefProvider"
+          }
+          remote {
+            transport = "akka.remote.netty.NettyRemoteTransport"
+            netty {
+              hostname = "%s"
+              port = "%s"
+            }
+          }
+        }
+        """.format(args(1), port))
+    val system = ActorSystem("TaskmasterClientApplication", ConfigFactory.load(config))
     val actor = system.actorOf(Props[TaskmasterClientActor], "taskmaster-client")
-    taskmasterServiceActor = system.actorFor("akka://TaskmasterServiceApplication@127.0.0.1:2552/user/taskmaster-service")
+    taskmasterServiceActor = system.actorFor("akka://TaskmasterServiceApplication@"+args(2)+":2552/user/taskmaster-service")
     actor ! JobRequest
   }
 
