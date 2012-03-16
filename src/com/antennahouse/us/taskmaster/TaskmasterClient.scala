@@ -5,7 +5,10 @@ import akka.actor.Actor._
 import akka.actor.ActorRef
 import com.typesafe.config.ConfigFactory
 
-import StreamGobbler._
+import java.io.File
+import ahrts.common.types.Document
+import ahrts.app.common.xml.{ ComparisonResult, TestResult }
+import ahrts.compare.{ document, image }
 
 object TaskmasterClient {
   var taskmasterServiceActor: ActorRef = null
@@ -51,11 +54,8 @@ object TaskmasterClient {
         Runtime.getRuntime().halt(0)
       case Job(data) =>
         // Process data
-        val proc = Runtime.getRuntime().exec(Array("/bin/sh", "/home/antenna/ahrts-dist/compare.sh", data._1.getAbsolutePath(), data._2.getAbsolutePath()))
-        printGobbler(proc.getErrorStream())
-        printGobbler(proc.getInputStream())
         println("Processing " + data._1 + " and " + data._2)
-        proc.waitFor()
+        compareDocs(data._1, data._2)
         sender ! JobResult(data)
         requestAJob()
       case JobRequest =>
@@ -66,6 +66,19 @@ object TaskmasterClient {
     def requestAJob() {
       println("Requesting a Job.")
       taskmasterServiceActor ! JobRequest
+    }
+
+    def compareDocs(baseFile: File, newFile: File) {
+      val baseDoc = TestResult.fromXML(baseFile)
+      val newDoc = TestResult.fromXML(newFile)
+      val doc = new Document
+      doc.name = baseDoc.name
+      doc.baseDoc = baseDoc
+      doc.newDoc = newDoc
+      document.diff(doc)
+      if (doc.compare) doc.diffImages = image.setDiff(doc.baseDoc.images, doc.newDoc.images)
+      ComparisonResult.outputDir = new File("compare_results")
+      println(ComparisonResult.toXML(doc).getPath)
     }
   }
 }
