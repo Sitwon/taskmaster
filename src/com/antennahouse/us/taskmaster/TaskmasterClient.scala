@@ -12,6 +12,7 @@ import ahrts.compare.{ document, image }
 
 object TaskmasterClient {
   var taskmasterServiceActor: ActorRef = null
+  var system: ActorSystem = _
 
   def main(args: Array[String]) {
     var port = 2553
@@ -41,7 +42,7 @@ object TaskmasterClient {
           }
         }
         """.format(args(1), port))
-    val system = ActorSystem("TaskmasterClientApplication", ConfigFactory.load(config))
+    system = ActorSystem("TaskmasterClientApplication", ConfigFactory.load(config))
     val actor = system.actorOf(Props[TaskmasterClientActor], "taskmaster-client")
     taskmasterServiceActor = system.actorFor("akka://TaskmasterServiceApplication@"+args(2)+":2552/user/taskmaster-service")
     actor ! JobRequest
@@ -51,7 +52,7 @@ object TaskmasterClient {
     def receive = {
       case JobsFinished =>
         println("No more jobs to do.")
-        Runtime.getRuntime().halt(0)
+        system.shutdown()
       case Job(data) =>
         // Process data
         println("Processing " + data._1 + " and " + data._2)
