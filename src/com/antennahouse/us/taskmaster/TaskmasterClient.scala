@@ -9,6 +9,7 @@ import java.io.File
 import ahrts.common.types.Document
 import ahrts.app.common.xml.{ ComparisonResult, TestResult }
 import ahrts.compare.{ document, image }
+import ahrts.app.common.VisualComparison._
 
 object TaskmasterClient {
   var taskmasterServiceActor: ActorRef = null
@@ -56,7 +57,7 @@ object TaskmasterClient {
       case Job(data) =>
         // Process data
         println("Processing " + data._1 + " and " + data._2)
-        compareDocs(data._1, data._2)
+        compare(data._1, data._2)
         sender ! JobResult(data)
         requestAJob()
       case JobRequest =>
@@ -67,19 +68,6 @@ object TaskmasterClient {
     def requestAJob() {
       println("Requesting a Job.")
       taskmasterServiceActor ! JobRequest
-    }
-
-    def compareDocs(baseFile: File, newFile: File) {
-      val baseDoc = TestResult.fromXML(baseFile)
-      val newDoc = TestResult.fromXML(newFile)
-      val doc = new Document
-      doc.name = baseDoc.name
-      doc.baseDoc = baseDoc
-      doc.newDoc = newDoc
-      document.diff(doc)
-      if (doc.compare) doc.diffImages = image.setDiff(doc.baseDoc.images, doc.newDoc.images)
-      ComparisonResult.outputDir = new File("compare_results")
-      println(ComparisonResult.toXML(doc).getPath)
     }
   }
 }
