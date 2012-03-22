@@ -57,7 +57,13 @@ object TaskmasterClient {
       case Job(data) =>
         // Process data
         println("Processing " + data._1 + " and " + data._2)
-        compare(data._1, data._2)
+        try {
+          compare(data._1, data._2)
+        } catch {
+          case e: Exception =>
+            println("An error occurred: " + e.getMessage())
+            e.printStackTrace()
+        }
         sender ! JobResult(data)
         requestAJob()
       case JobRequest =>
