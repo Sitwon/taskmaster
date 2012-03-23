@@ -1,5 +1,7 @@
 package com.antennahouse.us.taskmaster
 
+import Messages._
+
 import akka.actor.{ ActorRef, Props, Actor, ActorSystem }
 import akka.actor.Actor._
 import akka.actor.ActorRef

@@ -1,15 +1,11 @@
 package com.antennahouse.us.taskmaster
 
+import Messages._
+
 import akka.actor.{ ActorRef, Props, Actor, ActorSystem }
 import akka.actor.Actor._
 import com.typesafe.config.ConfigFactory
 import java.io.{File, FilenameFilter}
-
-sealed trait TaskMessage
-case object JobRequest extends TaskMessage
-case object JobsFinished extends TaskMessage
-case class Job(data: (File,File)) extends TaskMessage
-case class JobResult(data: (File,File)) extends TaskMessage
 
 object TaskmasterService {
   var compare_list: List[(File, File)] = Nil
