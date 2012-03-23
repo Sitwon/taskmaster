@@ -29,7 +29,7 @@ object TaskmasterClient {
         println("Argument was not a number.")
         System exit 1
     }
-    Properties.load(new File("ahrts.properties")
+    Properties.load(new File("ahrts.properties"))
     val config = ConfigFactory.parseString("""
         akka {
           actor {
