@@ -9,7 +9,7 @@ import java.io.{File, FilenameFilter}
 
 object TaskmasterService {
   private var actor: ActorRef = _
-  private var compare_list: List[(File, File)] = _
+  private var compare_list: List[(File, File)] = Nil
   var sent = 0
   var received = 0
 
