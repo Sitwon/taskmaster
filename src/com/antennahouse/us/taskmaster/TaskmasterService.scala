@@ -84,6 +84,7 @@ object TaskmasterService {
           compare_list = compare_list.tail :+ compare_list.head
           sent += 1
           println("Sent: " + sent)
+          println("Remaining: " + compare_list.length)
         }
       case JobResult(data) =>
         println("Received a JobResult.")
