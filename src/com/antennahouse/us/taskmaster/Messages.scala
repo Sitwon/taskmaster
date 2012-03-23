@@ -8,5 +8,6 @@ object Messages {
   case object JobsFinished extends TaskMessage
   case class Job(data: (File,File)) extends TaskMessage
   case class JobResult(data: (File,File)) extends TaskMessage
+  case class AddJob(data: (File,File)) extends TaskMessage
 }
 

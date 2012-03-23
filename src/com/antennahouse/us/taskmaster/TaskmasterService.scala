@@ -8,10 +8,10 @@ import com.typesafe.config.ConfigFactory
 import java.io.{File, FilenameFilter}
 
 object TaskmasterService {
-  var compare_list: List[(File, File)] = Nil
+  private var actor: ActorRef = _
+  private var compare_list: List[(File, File)] = _
   var sent = 0
   var received = 0
-  var total = 0
 
   def main(args: Array[String]) {
     if (args.length < 2) {
@@ -43,7 +43,10 @@ object TaskmasterService {
       }
     }
     compare_list = compare_list.reverse
-    total = compare_list.length
+    startService(args(0))
+  }
+
+  def startService(ip: String) {
     val config = ConfigFactory.parseString("""
         akka {
           actor {
@@ -57,10 +60,12 @@ object TaskmasterService {
             }
           }
         }
-        """.format(args(0)))
+        """.format(ip))
     val system = ActorSystem("TaskmasterServiceApplication", ConfigFactory.load(config))
-    val actor = system.actorOf(Props[TaskmasterServiceActor], "taskmaster-service")
+    actor = system.actorOf(Props[TaskmasterServiceActor], "taskmaster-service")
   }
+
+  def addJob(a: File, b: File) { actor ! AddJob((a,b)) }
 
   def printUsage() {
     System.err.println("Usage: TaskmasterService <server-IP> <input-dir>")
@@ -76,14 +81,19 @@ object TaskmasterService {
         } else {
           println("Sending a job.")
           sender ! Job(compare_list.head)
-          compare_list = compare_list.tail
+          compare_list = compare_list.tail :+ compare_list.head
           sent += 1
-          println("Sent: " + sent + " of " + total)
+          println("Sent: " + sent)
         }
       case JobResult(data) =>
         println("Received a JobResult.")
+        if (compare_list exists { _ == data }) {
+          compare_list = compare_list filterNot { _ == data }
+        }
         received += 1
-        println("Received: " + received + " of " + total)
+        println("Received: " + received + " of " + sent)
+      case AddJob(data) =>
+        compare_list :+= data
     }
   }
 }
