@@ -9,7 +9,7 @@ import com.typesafe.config.ConfigFactory
 
 import java.io.File
 import ahrts.app.common.VisualComparison._
-import ahrts.app.common.config.Properties
+import ahrts.common.config.Properties
 
 object TaskmasterClient {
   var taskmasterServiceActor: ActorRef = null
