@@ -8,9 +8,6 @@ import akka.actor.ActorRef
 import com.typesafe.config.ConfigFactory
 
 import java.io.File
-import ahrts.common.types.Document
-import ahrts.app.common.xml.{ ComparisonResult, TestResult }
-import ahrts.compare.{ document, image }
 import ahrts.app.common.VisualComparison._
 
 object TaskmasterClient {
