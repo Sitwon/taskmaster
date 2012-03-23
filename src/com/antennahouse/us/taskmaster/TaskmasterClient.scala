@@ -9,6 +9,7 @@ import com.typesafe.config.ConfigFactory
 
 import java.io.File
 import ahrts.app.common.VisualComparison._
+import ahrts.app.common.config.Properties
 
 object TaskmasterClient {
   var taskmasterServiceActor: ActorRef = null
@@ -28,6 +29,7 @@ object TaskmasterClient {
         println("Argument was not a number.")
         System exit 1
     }
+    Properties.load(new File("ahrts.properties")
     val config = ConfigFactory.parseString("""
         akka {
           actor {
