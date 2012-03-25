@@ -7,6 +7,8 @@ import akka.actor.Actor._
 import com.typesafe.config.ConfigFactory
 import java.io.{File, FilenameFilter}
 
+import ahrts.common.config.{Properties=>props}
+
 object TaskmasterService {
   private var actor: ActorRef = _
   private var compare_list: List[(File, File)] = Nil
@@ -14,22 +16,37 @@ object TaskmasterService {
   var received = 0
 
   def main(args: Array[String]) {
-    if (args.length < 2) {
+    props.load(new File("ahrts.properties"))
+    if (args.length < 3) {
       printUsage()
       System exit 1
     }
-    val input_dir = new File(args(1))
+    val input_dir = new File(props.testOutputDir)
     if (!input_dir.isDirectory) {
-      printUsage()
       System exit 2
     }
-    val test_docs = input_dir.listFiles(new FilenameFilter() {
+    val test_doc_dirs = input_dir.listFiles(new FilenameFilter() {
         def accept(dir: File, name: String): Boolean = {
-          return name.toLowerCase().endsWith(".xml")
+          if (!(new File(dir, name)).isDirectory) return false
+          if (args.length == 3) {
+            true
+          } else {
+            args.drop(3).contains(name)
+          }
         }
       })
-    var test_docs_list = test_docs.toList
-    test_docs_list = test_docs_list sortWith {_.toString() < _.toString()}
+    val regA = ("(.*)-" + args(1) + """.xml""").r
+    val regB = ("(.*)-" + args(2) + """.xml""").r
+    val test_docs_list = (List[File]() /: test_doc_dirs) (_ ++ _.listFiles(new FilenameFilter() {
+        def accept(dir: File, name: String): Boolean = {
+          val test_name = dir.getName()
+          name match {
+            case regA(test_name) => true
+            case regB(test_name) => true
+            case _ => false
+          }
+        }
+      }))
     var even = false
     var odd: File = null
     for ( file <- test_docs_list ) {
@@ -68,7 +85,7 @@ object TaskmasterService {
   def addJob(a: File, b: File) { actor ! AddJob((a,b)) }
 
   def printUsage() {
-    System.err.println("Usage: TaskmasterService <server-IP> <input-dir>")
+    System.err.println("Usage: TaskmasterService <server-IP> <engine-A> <engine-B> [test-name ...]")
   }
 
   class TaskmasterServiceActor extends Actor {
