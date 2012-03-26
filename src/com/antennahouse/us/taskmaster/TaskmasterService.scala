@@ -38,9 +38,13 @@ object TaskmasterService {
           }
         }
       })
+
     val regA = ("(.*)-" + args(1) + """.xml""").r
     val regB = ("(.*)-" + args(2) + """.xml""").r
-    val test_docs_list = (List[File]() /: test_doc_dirs) (_ ++ _.listFiles(new FilenameFilter() {
+
+    test_doc_dirs foreach {
+      test_dir: File =>
+      val test_docs = test_dir.listFiles(new FilenameFilter() {
         def accept(dir: File, name: String): Boolean = {
           val test_name = dir.getName()
           name match {
@@ -49,18 +53,8 @@ object TaskmasterService {
             case _ => false
           }
         }
-      }))
-    var even = false
-    var odd: File = null
-    for ( file <- test_docs_list ) {
-      if (!even) {
-        odd = file
-        even = true
-      } else {
-        println(odd.toString() + " " + file.toString())
-        addJob(odd, file)
-        even = false
-      }
+      }).toList
+      addJob(test_docs(0), test_docs(1))
     }
   }
 
