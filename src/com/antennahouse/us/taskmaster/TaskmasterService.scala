@@ -9,6 +9,7 @@ import java.io.{File, FilenameFilter}
 import scala.collection.mutable.Queue
 
 import ahrts.common.config.{Properties=>props}
+import ahrts.app.common.VisualComparison.compare
 
 object TaskmasterService {
   private var actor: ActorRef = _
@@ -79,12 +80,17 @@ object TaskmasterService {
 
   def addJob(a: File, b: File) { actor ! AddJob((a,b)) }
 
+  def genAddJob(a: File, b: File) {
+    actor ! GenAddJob(GenJob[(File, File), Unit]((a,b), data => compare(data._1, data._2)))
+  }
+
   def printUsage() {
     System.err.println("Usage: TaskmasterService <server-IP> <engine-A> <engine-B> [test-name ...]")
   }
 
   class TaskmasterServiceActor extends Actor {
     private val compare_queue: Queue[(File, File)] = Queue[(File, File)]()
+    private val gen_queue = Queue[GenJob[_,_]]()
 
     def receive = {
       case JobRequest =>
@@ -107,6 +113,31 @@ object TaskmasterService {
         println("Received: " + received + " of " + sent)
       case AddJob(data) =>
         compare_queue enqueue data
+      case GenJobRequest =>
+        println("Got a GenJobRequest.")
+        if (gen_queue.isEmpty) {
+          println("No more jobs.")
+          sender ! GenJobsFinished
+        } else {
+          println("Sending a job.")
+          sender ! gen_queue.head
+          gen_queue enqueue gen_queue.dequeue
+          sent += 1
+          println("Sent: " + sent)
+          println("Remaining: " + gen_queue.length)
+        }
+      case GenJobResult(data, result) =>
+        println("Received a GenJobResult.")
+        gen_queue dequeueFirst {
+          _ match {
+            case GenJob(`data`, _) => true
+            case _ => false
+          }
+        }
+        received += 1
+        println("Received: " + received + " of " + sent)
+      case GenAddJob(job) =>
+        gen_queue enqueue job
     }
   }
 }
