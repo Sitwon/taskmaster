@@ -11,6 +11,8 @@ object Messages {
   case class JobResult(data: (File,File)) extends TaskMessage
   case class AddJob(data: (File,File)) extends TaskMessage
 
+  case object GenJobRequest extends TaskMessage
+  case object GenJobsFinished extends TaskMessage
   case class GenJob[D,R](data: D, task: D => R) extends TaskMessage
   case class GenJobResult[D,R](data: D, result: R) extends TaskMessage
   case class GenAddJob(job: GenJob[_,_]) extends TaskMessage
