@@ -55,7 +55,7 @@ object TaskmasterService {
           }
         }
       }).toList
-      addJob(test_docs(0), test_docs(1))
+      if (test_docs.length == 2) addJob(test_docs(0), test_docs(1))
     }
   }
 
