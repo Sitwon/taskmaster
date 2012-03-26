@@ -55,7 +55,8 @@ object TaskmasterService {
           }
         }
       }).toList
-      if (test_docs.length == 2) addJob(test_docs(0), test_docs(1))
+      if (test_docs.length == 2)
+        addJob((test_docs(0), test_docs(1))) { compare(test_docs(0), test_docs(1)) }
     }
   }
 
@@ -78,66 +79,41 @@ object TaskmasterService {
     system.actorOf(Props[TaskmasterServiceActor], "taskmaster-service")
   }
 
-  def addJob(a: File, b: File) { actor ! AddJob((a,b)) }
-
-  def genAddJob(a: File, b: File) {
-    actor ! GenAddJob(GenJob((a,b), () => compare(a, b)))
-  }
+  def addJob(data: Any)(task: => Unit) { actor ! AddJob(Job(data, () => task)) }
 
   def printUsage() {
     System.err.println("Usage: TaskmasterService <server-IP> <engine-A> <engine-B> [test-name ...]")
   }
 
   class TaskmasterServiceActor extends Actor {
-    private val compare_queue: Queue[(File, File)] = Queue[(File, File)]()
-    private val gen_queue = Queue[GenJob]()
+    private val job_queue = Queue[Job]()
 
     def receive = {
       case JobRequest =>
-        println("Got a JobRequest.")
-        if (compare_queue.isEmpty) {
+        println("Got a GenJobRequest.")
+        if (job_queue.isEmpty) {
           println("No more jobs.")
           sender ! JobsFinished
         } else {
           println("Sending a job.")
-          sender ! Job(compare_queue.head)
-          compare_queue enqueue compare_queue.dequeue
+          sender ! job_queue.head
+          job_queue enqueue job_queue.dequeue
           sent += 1
           println("Sent: " + sent)
-          println("Remaining: " + compare_queue.length)
+          println("Remaining: " + job_queue.length)
         }
       case JobResult(data) =>
-        println("Received a JobResult.")
-        compare_queue dequeueFirst { _ == data }
-        received += 1
-        println("Received: " + received + " of " + sent)
-      case AddJob(data) =>
-        compare_queue enqueue data
-      case GenJobRequest =>
-        println("Got a GenJobRequest.")
-        if (gen_queue.isEmpty) {
-          println("No more jobs.")
-          sender ! GenJobsFinished
-        } else {
-          println("Sending a job.")
-          sender ! gen_queue.head
-          gen_queue enqueue gen_queue.dequeue
-          sent += 1
-          println("Sent: " + sent)
-          println("Remaining: " + gen_queue.length)
-        }
-      case GenJobResult(data) =>
         println("Received a GenJobResult.")
-        gen_queue dequeueFirst {
+        job_queue dequeueFirst {
           _ match {
-            case GenJob(`data`, _) => true
+            case Job(`data`, _) => true
             case _ => false
           }
         }
         received += 1
         println("Received: " + received + " of " + sent)
-      case GenAddJob(job) =>
-        gen_queue enqueue job
+      case AddJob(job) =>
+        job_queue enqueue job
     }
   }
 }

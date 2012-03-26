@@ -4,17 +4,12 @@ import java.io.File
 
 object Messages {
   sealed trait TaskMessage
+
   case object JobRequest extends TaskMessage
   case object JobsFinished extends TaskMessage
 
-  case class Job(data: (File,File)) extends TaskMessage
-  case class JobResult(data: (File,File)) extends TaskMessage
-  case class AddJob(data: (File,File)) extends TaskMessage
-
-  case object GenJobRequest extends TaskMessage
-  case object GenJobsFinished extends TaskMessage
-  case class GenJob(data: Any, task: () => Unit) extends TaskMessage
-  case class GenJobResult(data: Any) extends TaskMessage
-  case class GenAddJob(job: GenJob) extends TaskMessage
+  case class Job(data: Any, task: () => Unit) extends TaskMessage
+  case class JobResult(data: Any) extends TaskMessage
+  case class AddJob(job: Job) extends TaskMessage
 }
 

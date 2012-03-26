@@ -8,7 +8,6 @@ import akka.actor.ActorRef
 import com.typesafe.config.ConfigFactory
 
 import java.io.File
-import ahrts.app.common.VisualComparison._
 import ahrts.common.config.Properties
 
 object TaskmasterClient {
@@ -52,48 +51,25 @@ object TaskmasterClient {
       case JobsFinished =>
         println("No more jobs to do.")
         system.shutdown()
-      case Job(data) =>
-        // Process data
-        println("Processing " + data._1 + " and " + data._2)
+      case Job(data, task) =>
+        println("Got a job.")
         try {
-          compare(data._1, data._2)
+          task()
+          sender ! JobResult(data)
         } catch {
           case e: Exception =>
             println("An error occurred: " + e.getMessage())
             e.printStackTrace()
         }
-        sender ! JobResult(data)
         requestAJob()
       case JobRequest =>
         println("received JobRequest.")
         requestAJob()
-      case GenJobsFinished =>
-        println("No more jobs to do.")
-        system.shutdown()
-      case GenJob(data, task) =>
-        println("Got a job.")
-        try {
-          task()
-          sender ! GenJobResult(data)
-        } catch {
-          case e: Exception =>
-            println("An error occurred: " + e.getMessage())
-            e.printStackTrace()
-        }
-        requestAGenJob()
-      case GenJobRequest =>
-        println("received GenJobRequest.")
-        requestAGenJob()
     }
 
     def requestAJob() {
       println("Requesting a Job.")
       taskmasterServiceActor ! JobRequest
-    }
-
-    def requestAGenJob() {
-      println("Requesting a Job.")
-      taskmasterServiceActor ! GenJobRequest
     }
   }
 }
