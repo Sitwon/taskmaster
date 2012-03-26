@@ -6,12 +6,13 @@ import akka.actor.{ ActorRef, Props, Actor, ActorSystem }
 import akka.actor.Actor._
 import com.typesafe.config.ConfigFactory
 import java.io.{File, FilenameFilter}
+import scala.collection.mutable.Queue
 
 import ahrts.common.config.{Properties=>props}
 
 object TaskmasterService {
   private var actor: ActorRef = _
-  private var compare_list: List[(File, File)] = Nil
+  private val compare_queue: Queue[(File, File)] = Queue[(File, File)]()
   var sent = 0
   var received = 0
 
@@ -55,11 +56,10 @@ object TaskmasterService {
         even = true
       } else {
         println(odd.toString() + " " + file.toString())
-        compare_list = (odd, file) :: compare_list
+        compare_queue.enqueue((odd, file))
         even = false
       }
     }
-    compare_list = compare_list.reverse
     startService(args(0))
   }
 
@@ -92,26 +92,24 @@ object TaskmasterService {
     def receive = {
       case JobRequest =>
         println("Got a JobRequest.")
-        if (compare_list == Nil) {
+        if (compare_queue.isEmpty) {
           println("No more jobs.")
           sender ! JobsFinished
         } else {
           println("Sending a job.")
-          sender ! Job(compare_list.head)
-          compare_list = compare_list.tail :+ compare_list.head
+          sender ! Job(compare_queue.head)
+          compare_queue enqueue compare_queue.dequeue
           sent += 1
           println("Sent: " + sent)
-          println("Remaining: " + compare_list.length)
+          println("Remaining: " + compare_queue.length)
         }
       case JobResult(data) =>
         println("Received a JobResult.")
-        if (compare_list exists { _ == data }) {
-          compare_list = compare_list filterNot { _ == data }
-        }
+        compare_queue dequeueFirst { _ == data }
         received += 1
         println("Received: " + received + " of " + sent)
       case AddJob(data) =>
-        compare_list :+= data
+        compare_queue enqueue data
     }
   }
 }
