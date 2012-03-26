@@ -12,9 +12,8 @@ import ahrts.common.config.{Properties=>props}
 
 object TaskmasterService {
   private var actor: ActorRef = _
-  private val compare_queue: Queue[(File, File)] = Queue[(File, File)]()
-  var sent = 0
-  var received = 0
+  private var sent = 0
+  private var received = 0
 
   def main(args: Array[String]) {
     props.load(new File("ahrts.properties"))
@@ -26,6 +25,9 @@ object TaskmasterService {
     if (!input_dir.isDirectory) {
       System exit 2
     }
+
+    actor = startService(args(0))
+
     val test_doc_dirs = input_dir.listFiles(new FilenameFilter() {
         def accept(dir: File, name: String): Boolean = {
           if (!(new File(dir, name)).isDirectory) return false
@@ -56,14 +58,13 @@ object TaskmasterService {
         even = true
       } else {
         println(odd.toString() + " " + file.toString())
-        compare_queue.enqueue((odd, file))
+        addJob(odd, file)
         even = false
       }
     }
-    startService(args(0))
   }
 
-  def startService(ip: String) {
+  def startService(ip: String) = {
     val config = ConfigFactory.parseString("""
         akka {
           actor {
@@ -79,7 +80,7 @@ object TaskmasterService {
         }
         """.format(ip))
     val system = ActorSystem("TaskmasterServiceApplication", ConfigFactory.load(config))
-    actor = system.actorOf(Props[TaskmasterServiceActor], "taskmaster-service")
+    system.actorOf(Props[TaskmasterServiceActor], "taskmaster-service")
   }
 
   def addJob(a: File, b: File) { actor ! AddJob((a,b)) }
@@ -89,6 +90,8 @@ object TaskmasterService {
   }
 
   class TaskmasterServiceActor extends Actor {
+    private val compare_queue: Queue[(File, File)] = Queue[(File, File)]()
+
     def receive = {
       case JobRequest =>
         println("Got a JobRequest.")
