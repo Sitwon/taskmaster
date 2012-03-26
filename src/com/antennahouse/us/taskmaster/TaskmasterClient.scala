@@ -67,11 +67,32 @@ object TaskmasterClient {
       case JobRequest =>
         println("received JobRequest.")
         requestAJob()
+      case GenJobsFinished =>
+        println("No more jobs to do.")
+        system.shutdown()
+      case GenJob(data, task) =>
+        println("Got a job.")
+        try {
+          sender ! GenJobResult[Any,Any](data, task(data))
+        } catch {
+          case e: Exception =>
+            println("An error occurred: " + e.getMessage())
+            e.printStackTrace()
+        }
+        requestAGenJob()
+      case GenJobRequest =>
+        println("received GenJobRequest.")
+        requestAGenJob()
     }
 
     def requestAJob() {
       println("Requesting a Job.")
       taskmasterServiceActor ! JobRequest
+    }
+
+    def requestAGenJob() {
+      println("Requesting a Job.")
+      taskmasterServiceActor ! GenJobRequest
     }
   }
 }
