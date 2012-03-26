@@ -12,24 +12,21 @@ import ahrts.app.common.VisualComparison._
 import ahrts.common.config.Properties
 
 object TaskmasterClient {
-  var taskmasterServiceActor: ActorRef = null
-  var system: ActorSystem = _
+  private var taskmasterServiceActor: ActorRef = null
+  private var system: ActorSystem = _
 
   def main(args: Array[String]) {
     var port = 2553
-    if (args.length < 3) {
-      System.err.println("Usage: TaskmasterClient <client-number> <client-IP> <server-IP>")
+    if (args.length < 2) {
+      System.err.println("Usage: TaskmasterClient <client-IP> <server-IP>")
       System exit 1
     }
-    try {
-      val client_number = Integer.parseInt(args(0))
-      port += client_number
-    } catch {
-      case e: NumberFormatException =>
-        println("Argument was not a number.")
-        System exit 1
-    }
     Properties.load(new File("ahrts.properties"))
+    val actor = startClient(args(0), args(1))
+    actor ! JobRequest
+  }
+
+  def startClient(ip: String, server: String) = {
     val config = ConfigFactory.parseString("""
         akka {
           actor {
@@ -39,16 +36,15 @@ object TaskmasterClient {
             transport = "akka.remote.netty.NettyRemoteTransport"
             netty {
               hostname = "%s"
-              port = "%s"
+              port = "0"
             }
           }
         }
-        """.format(args(1), port))
+        """.format(ip))
     system = ActorSystem("TaskmasterClientApplication", ConfigFactory.load(config))
-    val actor = system.actorOf(Props[TaskmasterClientActor], "taskmaster-client")
     taskmasterServiceActor = system.actorFor(
-        "akka://TaskmasterServiceApplication@"+args(2)+":2552/user/taskmaster-service")
-    actor ! JobRequest
+        "akka://TaskmasterServiceApplication@"+server+":2552/user/taskmaster-service")
+    system.actorOf(Props[TaskmasterClientActor], "taskmaster-client")
   }
 
   class TaskmasterClientActor extends Actor {
