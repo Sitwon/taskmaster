@@ -81,7 +81,7 @@ object TaskmasterService {
   def addJob(a: File, b: File) { actor ! AddJob((a,b)) }
 
   def genAddJob(a: File, b: File) {
-    actor ! GenAddJob(GenJob[(File, File), Unit]((a,b), data => compare(data._1, data._2)))
+    actor ! GenAddJob(GenJob((a,b), () => compare(a, b)))
   }
 
   def printUsage() {
@@ -90,7 +90,7 @@ object TaskmasterService {
 
   class TaskmasterServiceActor extends Actor {
     private val compare_queue: Queue[(File, File)] = Queue[(File, File)]()
-    private val gen_queue = Queue[GenJob[_,_]]()
+    private val gen_queue = Queue[GenJob]()
 
     def receive = {
       case JobRequest =>
@@ -126,7 +126,7 @@ object TaskmasterService {
           println("Sent: " + sent)
           println("Remaining: " + gen_queue.length)
         }
-      case GenJobResult(data, result) =>
+      case GenJobResult(data) =>
         println("Received a GenJobResult.")
         gen_queue dequeueFirst {
           _ match {

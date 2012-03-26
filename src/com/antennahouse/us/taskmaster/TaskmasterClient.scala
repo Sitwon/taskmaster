@@ -73,7 +73,8 @@ object TaskmasterClient {
       case GenJob(data, task) =>
         println("Got a job.")
         try {
-          sender ! GenJobResult[Any,Any](data, task(data))
+          task()
+          sender ! GenJobResult(data)
         } catch {
           case e: Exception =>
             println("An error occurred: " + e.getMessage())
