@@ -12,10 +12,6 @@ import ahrts.common.config.{Properties=>props}
 import ahrts.app.common.VisualComparison.compare
 
 object TaskmasterService {
-  private var actor: ActorRef = _
-  private var sent = 0
-  private var received = 0
-
   def main(args: Array[String]) {
     props.load(new File("ahrts.properties"))
     if (args.length < 3) {
@@ -27,7 +23,7 @@ object TaskmasterService {
       System exit 2
     }
 
-    actor = startService(args(0))
+    val tms = new TaskMasterService(args(0), 2552)
 
     val test_doc_dirs = input_dir.listFiles(new FilenameFilter() {
         def accept(dir: File, name: String): Boolean = {
@@ -56,11 +52,21 @@ object TaskmasterService {
         }
       }).toList
       if (test_docs.length == 2)
-        addJob((test_docs(0), test_docs(1))) { compare(test_docs(0), test_docs(1)) }
+        tms.addJob((test_docs(0), test_docs(1))) { compare(test_docs(0), test_docs(1)) }
     }
   }
 
-  def startService(ip: String) = {
+  def printUsage() {
+    System.err.println("Usage: TaskmasterService <server-IP> <engine-A> <engine-B> [test-name ...]")
+  }
+}
+
+class TaskMasterService(ip: String, port: Int) {
+  private var actor = startService(ip, port)
+  private var sent = 0
+  private var received = 0
+
+  private def startService(ip: String, port: Int) = {
     val config = ConfigFactory.parseString("""
         akka {
           actor {
@@ -70,22 +76,18 @@ object TaskmasterService {
             transport = "akka.remote.netty.NettyRemoteTransport"
             netty {
               hostname = "%s"
-              port = 2552
+              port = %d
             }
           }
         }
-        """.format(ip))
+        """.format(ip, port))
     val system = ActorSystem("TaskmasterServiceApplication", ConfigFactory.load(config))
     system.actorOf(Props[TaskmasterServiceActor], "taskmaster-service")
   }
 
   def addJob(data: Any)(task: => Unit) { actor ! AddJob(Job(data, () => task)) }
 
-  def printUsage() {
-    System.err.println("Usage: TaskmasterService <server-IP> <engine-A> <engine-B> [test-name ...]")
-  }
-
-  class TaskmasterServiceActor extends Actor {
+  private class TaskmasterServiceActor extends Actor {
     private val job_queue = Queue[Job]()
 
     def receive = {
@@ -117,4 +119,3 @@ object TaskmasterService {
     }
   }
 }
-
