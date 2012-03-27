@@ -23,7 +23,7 @@ object TaskmasterService {
       System exit 2
     }
 
-    val tms = new TaskMasterService(args(0), 2552)
+    val tms = new TaskmasterService(args(0), 2552)
 
     val test_doc_dirs = input_dir.listFiles(new FilenameFilter() {
         def accept(dir: File, name: String): Boolean = {
@@ -59,36 +59,11 @@ object TaskmasterService {
   def printUsage() {
     System.err.println("Usage: TaskmasterService <server-IP> <engine-A> <engine-B> [test-name ...]")
   }
-}
-
-class TaskMasterService(ip: String, port: Int) {
-  private var actor = startService(ip, port)
-  private var sent = 0
-  private var received = 0
-
-  private def startService(ip: String, port: Int) = {
-    val config = ConfigFactory.parseString("""
-        akka {
-          actor {
-            provider = "akka.remote.RemoteActorRefProvider"
-          }
-          remote {
-            transport = "akka.remote.netty.NettyRemoteTransport"
-            netty {
-              hostname = "%s"
-              port = %d
-            }
-          }
-        }
-        """.format(ip, port))
-    val system = ActorSystem("TaskmasterServiceApplication", ConfigFactory.load(config))
-    system.actorOf(Props[TaskmasterServiceActor], "taskmaster-service")
-  }
-
-  def addJob(data: Any)(task: => Unit) { actor ! AddJob(Job(data, () => task)) }
 
   private class TaskmasterServiceActor extends Actor {
     private val job_queue = Queue[Job]()
+    private var sent = 0
+    private var received = 0
 
     def receive = {
       case JobRequest =>
@@ -118,4 +93,29 @@ class TaskMasterService(ip: String, port: Int) {
         job_queue enqueue job
     }
   }
+}
+
+class TaskmasterService(ip: String, port: Int) {
+  private val actor: ActorRef = startService
+
+  private def startService() = {
+    val config = ConfigFactory.parseString("""
+        akka {
+          actor {
+            provider = "akka.remote.RemoteActorRefProvider"
+          }
+          remote {
+            transport = "akka.remote.netty.NettyRemoteTransport"
+            netty {
+              hostname = "%s"
+              port = %d
+            }
+          }
+        }
+        """.format(ip, port))
+    val system = ActorSystem("TaskmasterServiceApplication", ConfigFactory.load(config))
+    system.actorOf(Props[TaskmasterService.TaskmasterServiceActor], "taskmaster-service")
+  }
+
+  def addJob(data: Any)(task: => Unit) { actor ! AddJob(Job(data, () => task)) }
 }
