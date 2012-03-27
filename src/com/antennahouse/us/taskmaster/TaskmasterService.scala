@@ -67,7 +67,7 @@ object TaskmasterService {
 
     def receive = {
       case JobRequest =>
-        println("Got a GenJobRequest.")
+        println("Got a JobRequest.")
         if (job_queue.isEmpty) {
           println("No more jobs.")
           sender ! JobsFinished
@@ -80,7 +80,7 @@ object TaskmasterService {
           println("Remaining: " + job_queue.length)
         }
       case JobResult(data) =>
-        println("Received a GenJobResult.")
+        println("Received a JobResult.")
         job_queue dequeueFirst {
           _ match {
             case Job(`data`, _) => true
