@@ -55,12 +55,12 @@ object TaskmasterClient {
         println("Got a job.")
         try {
           task()
-          sender ! JobResult(data)
         } catch {
           case e: Exception =>
             println("An error occurred: " + e.getMessage())
             e.printStackTrace()
         }
+        sender ! JobResult(data)
         requestAJob()
       case JobRequest =>
         println("received JobRequest.")
