@@ -51,8 +51,15 @@ object TaskmasterService {
           }
         }
       }).toList
-      if (test_docs.length == 2)
-        tms.addJob((test_docs(0), test_docs(1))) { compare(test_docs(0), test_docs(1)) }
+      if (test_docs.length == 2) {
+        println("Adding job: " + test_docs(0).toString +
+          " vs " + test_docs(1).toString)
+        tms.addJob((test_docs(0), test_docs(1))) {
+          println("Comparing: " + test_docs(0).toString +
+            " vs " + test_docs(1).toString)
+          compare(test_docs(0), test_docs(1))
+        }
+      }
     }
   }
 
