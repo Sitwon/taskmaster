@@ -5,7 +5,6 @@ import Messages._
 import akka.actor.{ ActorRef, Props, Actor, ActorSystem }
 import akka.actor.Actor._
 import com.typesafe.config.ConfigFactory
-import java.io.{File, FilenameFilter}
 import scala.collection.mutable.Queue
 
 object TaskmasterService {
