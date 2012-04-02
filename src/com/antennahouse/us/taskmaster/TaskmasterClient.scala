@@ -8,7 +8,6 @@ import akka.actor.ActorRef
 import com.typesafe.config.ConfigFactory
 
 import java.io.File
-import ahrts.common.config.Properties
 
 object TaskmasterClient {
   private var taskmasterServiceActor: ActorRef = null
@@ -20,7 +19,6 @@ object TaskmasterClient {
       System.err.println("Usage: TaskmasterClient <client-IP> <server-IP>")
       System exit 1
     }
-    Properties.load(new File("ahrts.properties"))
     val actor = startClient(args(0), args(1))
     actor ! JobRequest
   }
