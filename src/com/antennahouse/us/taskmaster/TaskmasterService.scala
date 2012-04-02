@@ -8,63 +8,13 @@ import com.typesafe.config.ConfigFactory
 import java.io.{File, FilenameFilter}
 import scala.collection.mutable.Queue
 
-import ahrts.common.config.{Properties=>props}
-import ahrts.app.common.VisualComparison.compare
-
 object TaskmasterService {
   def main(args: Array[String]) {
-    props.load(new File("ahrts.properties"))
-    if (args.length < 3) {
-      printUsage()
+    if (args.length < 1) {
+      println("Usage: TaskmasterService <ip-address>")
       System exit 1
     }
-    val input_dir = new File(props.testOutputDir)
-    if (!input_dir.isDirectory) {
-      System exit 2
-    }
-
-    val tms = new TaskmasterService(args(0), 2552)
-
-    val test_doc_dirs = input_dir.listFiles(new FilenameFilter() {
-        def accept(dir: File, name: String): Boolean = {
-          if (!(new File(dir, name)).isDirectory) return false
-          if (args.length == 3) {
-            true
-          } else {
-            args.drop(3).contains(name)
-          }
-        }
-      })
-
-    val regA = ("(.*)-" + args(1) + """.xml""").r
-    val regB = ("(.*)-" + args(2) + """.xml""").r
-
-    test_doc_dirs foreach {
-      test_dir: File =>
-      val test_docs = test_dir.listFiles(new FilenameFilter() {
-        def accept(dir: File, name: String): Boolean = {
-          val test_name = dir.getName()
-          name match {
-            case regA(test_name) => true
-            case regB(test_name) => true
-            case _ => false
-          }
-        }
-      }).toList
-      if (test_docs.length == 2) {
-        println("Adding job: " + test_docs(0).toString +
-          " vs " + test_docs(1).toString)
-        tms.addJob((test_docs(0), test_docs(1))) {
-          println("Comparing: " + test_docs(0).toString +
-            " vs " + test_docs(1).toString)
-          compare(test_docs(0), test_docs(1))
-        }
-      }
-    }
-  }
-
-  def printUsage() {
-    System.err.println("Usage: TaskmasterService <server-IP> <engine-A> <engine-B> [test-name ...]")
+    new TaskmasterService(args(0), 2552)
   }
 
   private class TaskmasterServiceActor extends Actor {
